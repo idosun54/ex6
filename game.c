@@ -41,7 +41,7 @@ static void displayMap(GameState* g) {
     printf("=== ROOM LEGEND ===\n");
      Room* r=g->rooms;
       printLegend(r);
-    printf("===================");
+    printf("===================\n");
     for (int i = 0; i < height; i++) free(grid[i]);
     free(grid);
 }
@@ -67,12 +67,12 @@ void printLegend(Room* r)
 void addRoom(GameState* g)
 {
   Room* r= malloc(sizeof(Room));
-  r=NULL;
   if(g->roomCount!=0)
   {
   void displayMap(g);
   int NewId=g->roomCount;
   r->id=++NewId;
+  r->visited=0;
   int id=getInt("Attach to room ID: ");
   Room *temp=g->rooms;
   int x;
@@ -86,25 +86,22 @@ void addRoom(GameState* g)
     }
     temp=temp->next;
   }
-  
-  int direction=getINt("Direction (0=Up,1=Down,2=Left,3=Right): ");
+  int direction=getInt("Direction (0=Up,1=Down,2=Left,3=Right): ");
   switch (direction)
   {
-  case 0:
+  case UP:
   y--;
     break;
-  case 1:
+  case DOWN:
   y++;
     break;
-  case 2:
+  case LEFT:
   x--;
     break;
-  case 3:
+  case RIGHT:
   x++;
     break;
   }
-
-
 
 Room *full=g->rooms;
 while(!full)
@@ -112,6 +109,7 @@ while(!full)
   if((x==full->x)&&(y==full->y))
   {
     printf("Room exists there\n");
+    free(r);
     return;
   }
  full=full->next;
@@ -126,6 +124,7 @@ else
   r->id=0;
   r->x=0;
   r->y=0;
+  r->visited=1;
  }
 
 Monster *mon=malloc(sizeof(Monster));
@@ -155,7 +154,6 @@ else {
  r->item=NULL;
 }
 r->next=NULL;
-r->visited=NULL;
 g->roomCount++;
 printf("Created room %d at (%d,%d)", r->id, r->x, r->y);
 
@@ -165,3 +163,73 @@ while(findEmpty!=NULL)
 findEmpty=r;
 }
 
+void initPlayer(GameState* g)
+{
+ if(g->rooms==NULL)
+ {
+  printf("Create rooms first");
+  return;
+ }
+ Player* player= malloc(sizeof(Player));
+ player->maxHp=g->configMaxHp;
+ player->baseAttack=g->configBaseAttack;
+ player->bag=NULL;
+ player->hp=player->maxHp;
+ player->defeatedMonsters=NULL;
+ player->currentRoom=0;
+ g->player=player;
+}
+
+void playGame(GameState* g)
+{
+  if(g->player=NULL)
+  {
+   printf("Init player first");
+   return;
+  }
+   for (Room* r = g->rooms; r; r = r->next)
+   { int count;
+    if(r->visited&&(r->monster->hp==0))
+      count++;
+    if(count==g->roomCount)
+     {  
+      printf("***************************************\n");
+      printf("             VICTORY!                  \n");
+      printf(" All rooms explored. All monsters defeated.\n");
+      printf("***************************************\n");
+      freeGame(g);
+     }
+   }
+ 
+ Room* r = g->rooms;
+ displayMap(g);
+ printf("--- Room %d ---", r->id);
+ if(r->monster!=NULL)
+  printf("Monster: %s (HP:%d)", r->monster->name, r->monster->hp);
+ if(r->item!=NULL)
+  printf("Item: %s", r->item->name);
+ printf("HP: %d/%d", g->player->hp, g->player->maxHp);
+ int choise=getInt("1.Move 2.Fight 3.Pickup 4.Bag 5.Defeated 6.Quit\n");
+ switch (choise)
+ {
+ case MOVE:
+  if(r->monster->hp!=0)
+   {
+     printf("Kill monster first\n");
+     playGame(g);
+   }
+  break;
+ case FIGHT:
+ 
+
+
+
+ }
+
+
+
+
+
+
+
+}
