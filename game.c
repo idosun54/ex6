@@ -272,7 +272,6 @@ void playGame(GameState* g)
 }
 }
 
-
 void freeGame(GameState* g)
 {
   if(!g)
