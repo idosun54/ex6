@@ -48,7 +48,7 @@ static void displayMap(GameState* g) {
 
 void printLegend(Room* r)
 {
-  if(!r)
+  if(r != NULL)
   {
    printLegend(r->next);
    if(r->monster==NULL&&r->item==NULL)
@@ -104,7 +104,7 @@ void addRoom(GameState* g)
   }
 
 Room *full=g->rooms;
-while(!full)
+while(full != NULL)
 {
   if((x==full->x)&&(y==full->y))
   {
@@ -182,14 +182,16 @@ void initPlayer(GameState* g)
 
 void playGame(GameState* g)
 {
-  if(g->player=NULL)
+  Room* r = g->rooms;
+  while(1){
+  if(g->player==NULL)
   {
    printf("Init player first");
    return;
   }
-   for (Room* r = g->rooms; r; r = r->next)
+   for (Room* temp = g->rooms; temp; temp = temp->next)
    { int count;
-    if(r->visited&&(r->monster->hp==0))
+    if(temp->visited&&(temp->monster->hp==0))
       count++;
     if(count==g->roomCount)
      {  
@@ -201,7 +203,6 @@ void playGame(GameState* g)
      }
    }
  
- Room* r = g->rooms;
  displayMap(g);
  printf("--- Room %d ---", r->id);
  if(r->monster!=NULL)
@@ -216,20 +217,98 @@ void playGame(GameState* g)
   if(r->monster->hp!=0)
    {
      printf("Kill monster first\n");
-     playGame(g);
+     continue;
    }
   break;
  case FIGHT:
- 
+  if(r->monster==NULL)
+  {
+    printf("No monster\n");
+    continue;
+  } 
+  while(r->monster->hp>0||g->player->hp>0)
+  {
+    if(r->monster->hp-g->player->baseAttack<=0)
+    {
+     printf("You deal %d damage. Monster HP: 0\n",g->player->baseAttack);
+     r->monster=NULL;
+     continue;
+    }
+    else
+     printf("You deal %d damage. Monster HP: %d\n",g->player->baseAttack, r->monster->hp - g->player->baseAttack);
+    if(g->player->hp-r->monster->attack<=0)
+    {  
+     printf("Monster deals %d damage. Your HP: 0\n", r->monster->attack);
+     printf("--- YOU DIED ---");
+     freeGame(g);
+    }
+    else
+    printf("Monster deals %d damage. Your HP: %d\n", r->monster->attack, g->player->hp - r->monster->attack);
+  }
+ case PICKUP:
+  if(r->monster!=NULL)
+  {
+    printf("Kill monster first\n");
+    continue;
+  }
+  if(r->item==NULL)
+  {
+   printf("No item here\n");
+   continue;
+  }
+  //add item to tree
+  printf("Picked up %s", r->item->name);
+  case BAG:
+   //Print the bad
+  
+  case DEFEATED:
+   //Print monsters
 
-
-
+  case QUIT:
+   return;
  }
+ r=r->next;
+ continue;
+}
+}
 
 
+void freeGame(GameState* g)
+{
+  if(!g)
+   return;
+ Room* curr = g->rooms;
+ while (!curr) {
+  Room* next = curr->next;
+  freeMonster(curr); 
+  freeItem(curr);
+  free(curr);
+  curr= next;
+  }
+ g->rooms=NULL;
+ free(g);
+}
 
+void freeItem(void* data)
+{ 
+  if(!data)
+   return;
+  Item* item= (Item*)data;
+  
+  if(item->name!= NULL)
+   free(item->name);
+ 
+  free(item);
+}
 
+void freeMonster(void* data)
+{
+  if(!data)
+   return;
+  Monster* mon= (Monster*)data;
 
+  if(mon->name!= NULL)
+   free(mon->name);
 
-
+ free(mon);
 }
