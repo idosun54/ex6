@@ -311,3 +311,51 @@ void freeMonster(void* data)
 
  free(mon);
 }
+
+int compareItems(void* a, void* b)
+{
+  Item* x = (Item*)a;
+  Item* y = (Item*)b;
+  int nameCmp= strcmp(x->name, y->name);
+  if(nameCmp!=0)
+   return nameCmp;
+  
+  if(x->value!=y->value)
+   return x->value-y->value;
+  
+  if(x->type!=y->type)
+   return x->type- y->type;
+
+  return 0;
+}
+
+void printItem(void* data)
+{
+  Item* item = (Item*)data;
+  printf("[%d] %s - Value:%d", item->type, item->name, item->value);
+}
+
+int compareMonsters(void* a, void* b)
+{
+ Monster* x = (Monster*)a;
+ Monster* y = (Monster*)b;
+
+ int nameCmp= strcmp(x->name, y->name);
+
+ if(nameCmp!=0)
+  return nameCmp;
+ 
+ if(x->attack!=y->attack)
+  return x->attack-y->attack;
+ 
+ if(x->maxHp!=y->maxHp)
+  return x->maxHp - y->maxHp;
+
+ return x->type - y->type;
+}
+
+void printMonster(void* data)
+{
+  Monster* mon = (Monster*)data;
+  printf("[%s] Type: %d, Attack: %d, HP: %d ", mon->name, mon->type, mon->attack, mon->maxHp);
+}
