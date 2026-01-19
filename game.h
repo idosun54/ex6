@@ -8,7 +8,8 @@ typedef enum { ARMOR, SWORD } ItemType;
 typedef enum { PHANTOM, SPIDER, DEMON, GOLEM, COBRA } MonsterType;
 
 typedef enum { UP, DOWN, LEFT, RIGHT } Direction;
-typedef enum { MOVE, FIGHT, PICKUP, BAG, DEFEATED, QUIT } Choise; 
+typedef enum { ZERO, MOVE, FIGHT, PICKUP, BAG, DEFEATED, QUIT } Choise; 
+typedef enum { PREORDER, INORDER, POSTORDER} PrintBST;
 
 typedef struct Item {
     char* name;
@@ -65,5 +66,8 @@ void addRoom(GameState* g);
 void initPlayer(GameState* g);
 void playGame(GameState* g);
 void freeGame(GameState* g);
+
+//helpers
+void printLegend(Room* r);
 
 #endif

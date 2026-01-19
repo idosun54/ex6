@@ -9,6 +9,7 @@ BST* createBST(int (*cmp)(void*, void*), void (*print)(void*), void (*freeData)(
   tree->compare= cmp;
   tree->print= print;
   tree->freeData= freeData;
+  return tree;
 }
 
 BSTNode* bstInsert(BSTNode* root, void* data, int (*cmp)(void*, void*))
@@ -29,7 +30,7 @@ BSTNode* bstInsert(BSTNode* root, void* data, int (*cmp)(void*, void*))
  if(comp>0)
   root->right= bstInsert(root->right, data, cmp);
 
- return root;
+ return NULL;
 }
 
 void* bstFind(BSTNode* root, void* data, int (*cmp)(void*, void*))
@@ -49,7 +50,7 @@ void* bstFind(BSTNode* root, void* data, int (*cmp)(void*, void*))
 void bstInorder(BSTNode* root, void (*print)(void*))
 {
  if(root==NULL)
-  return NULL;
+  return;
  
  bstInorder(root->left, print);
  print(root->data);
@@ -59,7 +60,7 @@ void bstInorder(BSTNode* root, void (*print)(void*))
 void bstPreorder(BSTNode* root, void (*print)(void*))
 {
  if(root==NULL)
-  return NULL;
+  return;
  
  print(root->data);
  bstInorder(root->left, print);
@@ -69,7 +70,7 @@ void bstPreorder(BSTNode* root, void (*print)(void*))
 void bstPostorder(BSTNode* root, void (*print)(void*))
 {
  if(root==NULL)
-  return NULL;
+  return;
  
  bstInorder(root->left, print);
  bstInorder(root->right, print);
@@ -79,7 +80,7 @@ void bstPostorder(BSTNode* root, void (*print)(void*))
 void bstFree(BSTNode* root, void (*freeData)(void*))
 {
   if(root==NULL)
-   return NULL;
+   return;
   
   bstFree(root->right, freeData);
   bstFree(root->left, freeData);

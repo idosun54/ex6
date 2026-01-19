@@ -69,15 +69,14 @@ void addRoom(GameState* g)
   Room* r= malloc(sizeof(Room));
   if(g->roomCount!=0)
   {
-  void displayMap(g);
-  int NewId=g->roomCount;
-  r->id=++NewId;
+   displayMap(g);
+  r->id=g->roomCount++;
   r->visited=0;
   int id=getInt("Attach to room ID: ");
   Room *temp=g->rooms;
   int x;
   int y;
-  while(!temp)
+  while(temp!=NULL)
   {
     if(temp->id==id)
     {
@@ -118,13 +117,13 @@ while(full != NULL)
 r->x=x;
 r->y=y;
 }
-
 else
  {
   r->id=0;
   r->x=0;
   r->y=0;
   r->visited=1;
+  g->roomCount++;
  }
 
 Monster *mon=malloc(sizeof(Monster));
@@ -154,13 +153,16 @@ else {
  r->item=NULL;
 }
 r->next=NULL;
-g->roomCount++;
 printf("Created room %d at (%d,%d)", r->id, r->x, r->y);
-
+if(r->id==0)
+ g->rooms=r;
+else
+{
 Room *findEmpty=g->rooms;
-while(findEmpty!=NULL)
+while(findEmpty->next!=NULL)
  findEmpty=findEmpty->next;
-findEmpty=r;
+findEmpty->next=r;
+}
 }
 
 void initPlayer(GameState* g)
@@ -173,10 +175,12 @@ void initPlayer(GameState* g)
  Player* player= malloc(sizeof(Player));
  player->maxHp=g->configMaxHp;
  player->baseAttack=g->configBaseAttack;
- player->bag=NULL;
  player->hp=player->maxHp;
- player->defeatedMonsters=NULL;
  player->currentRoom=0;
+ BST* monTree= createBST(compareMonsters, printMonster, freeMonster);
+ BST* itemTree= createBST(compareItems, printMonster, freeItem);
+ player->bag=itemTree;
+ player->defeatedMonsters=monTree;
  g->player=player;
 }
 
@@ -186,12 +190,12 @@ void playGame(GameState* g)
   while(1){
   if(g->player==NULL)
   {
-   printf("Init player first");
+   printf("Init player first\n");
    return;
   }
    for (Room* temp = g->rooms; temp; temp = temp->next)
    { int count;
-    if(temp->visited&&(temp->monster->hp==0))
+    if(temp->visited==1&&temp->monster->hp==0)
       count++;
     if(count==g->roomCount)
      {  
@@ -204,12 +208,12 @@ void playGame(GameState* g)
    }
  
  displayMap(g);
- printf("--- Room %d ---", r->id);
+ printf("--- Room %d ---\n", r->id);
  if(r->monster!=NULL)
-  printf("Monster: %s (HP:%d)", r->monster->name, r->monster->hp);
+  printf("Monster: %s (HP:%d)\n", r->monster->name, r->monster->hp);
  if(r->item!=NULL)
-  printf("Item: %s", r->item->name);
- printf("HP: %d/%d", g->player->hp, g->player->maxHp);
+  printf("Item: %s\n", r->item->name);
+ printf("HP: %d/%d\n", g->player->hp, g->player->maxHp);
  int choise=getInt("1.Move 2.Fight 3.Pickup 4.Bag 5.Defeated 6.Quit\n");
  switch (choise)
  {
@@ -228,9 +232,10 @@ void playGame(GameState* g)
   } 
   while(r->monster->hp>0||g->player->hp>0)
   {
-    if(r->monster->hp-g->player->baseAttack<=0)
+    if(r->monster->hp - g->player->baseAttack<=0)
     {
      printf("You deal %d damage. Monster HP: 0\n",g->player->baseAttack);
+     bstInsert(g->player->defeatedMonsters->root, r->monster, compareMonsters);
      r->monster=NULL;
      continue;
     }
@@ -245,6 +250,7 @@ void playGame(GameState* g)
     else
     printf("Monster deals %d damage. Your HP: %d\n", r->monster->attack, g->player->hp - r->monster->attack);
   }
+  break;
  case PICKUP:
   if(r->monster!=NULL)
   {
@@ -257,13 +263,50 @@ void playGame(GameState* g)
    continue;
   }
   //add item to tree
+  if(bstInsert(g->player->bag->root, r->item, compareItems)==NULL)
+  {
+    printf("Duplicate item.\n");
+    continue;
+  }
   printf("Picked up %s", r->item->name);
+  break;
   case BAG:
-   //Print the bad
-  
+   printf("=== INVENTORY ===\n");
+   printf("1.Preorder 2.Inorder 3.Postorder\n");
+   int printBag;
+   scanf("%d", &printBag);
+   switch (printBag)
+   {
+   case PREORDER:
+    bstInorder(g->player->bag->root, printItem);
+    break;
+   
+   case INORDER:
+   bstInorder(g->player->bag->root, printItem);
+    break;
+   case POSTORDER:
+   bstPostorder(g->player->bag->root, printItem);
+   }
+   break;
+   
   case DEFEATED:
-   //Print monsters
-
+   printf("=== DEFEATED MONSTERS ===\n");
+   printf("1.Preorder 2.Inorder 3.Postorder\n");
+   int printMon;
+   scanf("%d", &printMon);
+   switch (printMon)
+   {
+   case PREORDER:
+    bstInorder(g->player->bag->root, printMonster);
+    break;
+   
+   case INORDER:
+   bstInorder(g->player->bag->root, printMonster);
+    break;
+   case POSTORDER:
+   bstPostorder(g->player->bag->root, printMonster);
+   }
+    break;
   case QUIT:
    return;
  }
@@ -285,7 +328,6 @@ void freeGame(GameState* g)
   curr= next;
   }
  g->rooms=NULL;
- free(g);
 }
 
 void freeItem(void* data)

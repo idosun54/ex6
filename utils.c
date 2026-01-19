@@ -15,6 +15,8 @@ int getInt(const char* prompt)
 //Change
 char* getString(const char* prompt)
 {
+  while (getchar()!='\n');
+  
   printf("%s", prompt);
    char ch;
    char *temp = malloc(sizeof(char));
